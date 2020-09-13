@@ -6,7 +6,7 @@ public struct PerlinNoiseTextureSettings
 {
     public Vector2Int resolution;
 
-    public Vector2 origin;
+    public Vector2 offset;
     public float frequency;
 
     public int octaves;
@@ -49,7 +49,7 @@ public class PerlinNoiseTextureGeneratorWindow : EditorWindow
         noiseSettings = new PerlinNoiseTextureSettings()
         {
             resolution = new Vector2Int(256, 256),
-            origin = new Vector2(0.0f, 0.0f),
+            offset = new Vector2(0.0f, 0.0f),
             frequency = 5.0f
         };
 
@@ -73,9 +73,9 @@ public class PerlinNoiseTextureGeneratorWindow : EditorWindow
 
         EditorGUILayout.BeginHorizontal();
 
-        EditorGUILayout.LabelField("Origin", GUILayout.MaxWidth(CustomLabelMaxWidth));
+        EditorGUILayout.LabelField("Offset", GUILayout.MaxWidth(CustomLabelMaxWidth));
 
-        noiseSettings.origin = EditorGUILayout.Vector2Field("", noiseSettings.origin);
+        noiseSettings.offset = EditorGUILayout.Vector2Field("", noiseSettings.offset);
 
         GUILayout.EndHorizontal();
 
@@ -143,6 +143,7 @@ public class PerlinNoiseTextureGeneratorWindow : EditorWindow
 
         // Note: this could probably be a one-channel texture
         Texture2D texture = new Texture2D(noiseSettings.resolution.x, noiseSettings.resolution.y, TextureFormat.RGB24, false);
+        texture.wrapMode = TextureWrapMode.Clamp;
 
         Stopwatch sw = new Stopwatch();
         sw.Start();
@@ -158,7 +159,7 @@ public class PerlinNoiseTextureGeneratorWindow : EditorWindow
         previewTexture = texture;
 
         if (!isPreview)
-            AssetDatabase.CreateAsset(texture, "Assets/PerlinNoise.jpg");
+            AssetDatabase.CreateAsset(texture, "Assets/PerlinNoise.asset");
     }
 
     #endregion

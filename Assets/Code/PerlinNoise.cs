@@ -29,8 +29,8 @@ public static class PerlinNoise
             y *= noiseSettings.frequency;
 
             // for complete correctness must be multiplied by frequency but could be ignored too
-            x += (noiseSettings.origin.x * noiseSettings.frequency);
-            y += (noiseSettings.origin.y * noiseSettings.frequency);
+            x += (noiseSettings.offset.x * noiseSettings.frequency);
+            y += (noiseSettings.offset.y * noiseSettings.frequency);
 
             float perlinFloat = Perlin2D(x, y);
 
