@@ -29,6 +29,7 @@ public class PerlinNoiseTextureGeneratorWindow : EditorWindow
     private const int MaxResolutionY = 8192;
 
     private PerlinNoiseTextureSettings noiseSettings;
+    private Texture2D previewTexture;
 
     private GUIStyle headerStyle;
 
@@ -52,7 +53,7 @@ public class PerlinNoiseTextureGeneratorWindow : EditorWindow
             frequency = 5.0f
         };
 
-        headerStyle = EditorStyles.boldLabel;
+        headerStyle = new GUIStyle(EditorStyles.boldLabel);
         headerStyle.fontSize = 13;
         headerStyle.alignment = TextAnchor.MiddleCenter;
     }
@@ -98,29 +99,50 @@ public class PerlinNoiseTextureGeneratorWindow : EditorWindow
 
         GUILayout.EndHorizontal();
 
-        EditorGUILayout.EndVertical();
+        EditorGUILayout.Space();
 
-        //EditorGUILayout.Space();
+        EditorGUILayout.BeginHorizontal();
 
         if (GUILayout.Button("Preview result"))
-            CreateTexture();
+            CreateTexture(true);
 
         if (GUILayout.Button("Create texture"))
-            CreateTexture();
+            CreateTexture(false);
+
+        GUILayout.EndHorizontal();
+
+        EditorGUILayout.EndVertical();
+
+        Rect r = EditorGUILayout.GetControlRect();
+        r.height = Mathf.Abs(Screen.height - r.y) - 25.0f;
+        r.height = Mathf.Clamp(r.height, 0.0f, float.MaxValue);
+
+        if (previewTexture != null)
+            EditorGUI.DrawPreviewTexture(r, previewTexture, null, ScaleMode.ScaleToFit);
+    }
+
+    private void OnDisable()
+    {
+        DestroyPreviewTexture();
     }
 
     #endregion
 
     #region Methods
 
-    /// <summary>
-    /// Creates the perlin noise texture, with the given configured values from the window, and is
-    /// saved in assets.
-    /// </summary>
-    private void CreateTexture()
+    private void DestroyPreviewTexture()
     {
+        if (previewTexture != null)
+            DestroyImmediate(previewTexture);
+    }
+
+    private void CreateTexture(bool isPreview)
+    {
+        if (isPreview)
+            DestroyPreviewTexture();
+
         // Note: this could probably be a one-channel texture
-        Texture2D tex = new Texture2D(noiseSettings.resolution.x, noiseSettings.resolution.y, TextureFormat.RGB24, false);
+        Texture2D texture = new Texture2D(noiseSettings.resolution.x, noiseSettings.resolution.y, TextureFormat.RGB24, false);
 
         Stopwatch sw = new Stopwatch();
         sw.Start();
@@ -130,10 +152,13 @@ public class PerlinNoiseTextureGeneratorWindow : EditorWindow
         UnityEngine.Debug.Log("Noise generation took:" + sw.ElapsedMilliseconds + " milliseconds ");
         sw.Stop();
 
-        tex.SetPixels32(pixels);
-        tex.Apply();
+        texture.SetPixels32(pixels);
+        texture.Apply();
 
-        AssetDatabase.CreateAsset(tex, "Assets/PerlinNoise.asset");
+        previewTexture = texture;
+
+        if (!isPreview)
+            AssetDatabase.CreateAsset(texture, "Assets/PerlinNoise.jpg");
     }
 
     #endregion
