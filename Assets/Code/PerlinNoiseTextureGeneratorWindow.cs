@@ -11,7 +11,7 @@ public struct PerlinNoiseTextureSettings
 
     public int octaves;
     public float lacunarity; // < the rate at which frequency changes each octave
-    public float persistence; // the rate at which amplitude changes each octave
+    public float persistence; // < the rate at which amplitude changes each octave
 
     public int GetNumPixels()
     {
@@ -50,7 +50,10 @@ public class PerlinNoiseTextureGeneratorWindow : EditorWindow
         {
             resolution = new Vector2Int(256, 256),
             offset = new Vector2(0.0f, 0.0f),
-            frequency = 5.0f
+            frequency = 5.0f,
+            octaves = 1,
+            lacunarity = 2.0f,
+            persistence = 0.5f
         };
 
         headerStyle = new GUIStyle(EditorStyles.boldLabel);
@@ -69,7 +72,7 @@ public class PerlinNoiseTextureGeneratorWindow : EditorWindow
         EditorGUILayout.BeginVertical("Box", GUILayout.MaxWidth(Screen.width));
 
         noiseSettings.frequency = EditorGUILayout.FloatField("Frequency", noiseSettings.frequency);
-        noiseSettings.frequency = Mathf.Clamp(noiseSettings.frequency, 0.01f, float.MaxValue);
+        noiseSettings.frequency = Mathf.Clamp(noiseSettings.frequency, 0.0f, float.MaxValue);
 
         EditorGUILayout.BeginHorizontal();
 
@@ -148,6 +151,8 @@ public class PerlinNoiseTextureGeneratorWindow : EditorWindow
         Stopwatch sw = new Stopwatch();
         sw.Start();
 
+        // TODO: texture.GetRawTextureData is probably the fastest way to modify the texture, however I do
+        // not think it is necessary at the moment.
         Color32[] pixels = PerlinNoise.Perlin2DColors(noiseSettings);
 
         UnityEngine.Debug.Log("Noise generation took:" + sw.ElapsedMilliseconds + " milliseconds ");
