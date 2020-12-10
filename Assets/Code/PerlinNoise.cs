@@ -28,7 +28,7 @@ public static class PerlinNoise
             x *= noiseSettings.frequency;
             y *= noiseSettings.frequency;
 
-            // for complete correctness must be multiplied by frequency but could be ignored too
+            // for complete correctness must be multiplied by frequency
             x += (noiseSettings.offset.x * noiseSettings.frequency);
             y += (noiseSettings.offset.y * noiseSettings.frequency);
 

@@ -144,26 +144,27 @@ public class PerlinNoiseTextureGeneratorWindow : EditorWindow
         if (isPreview)
             DestroyPreviewTexture();
 
-        // Note: this could probably be a one-channel texture
+        // Note: this could be a one-channel texture atm
         Texture2D texture = new Texture2D(noiseSettings.resolution.x, noiseSettings.resolution.y, TextureFormat.RGB24, false);
         texture.wrapMode = TextureWrapMode.Clamp;
 
         Stopwatch sw = new Stopwatch();
         sw.Start();
 
-        // TODO: texture.GetRawTextureData is probably the fastest way to modify the texture, however I do
-        // not think it is necessary at the moment.
+        // Note: texture.GetRawTextureData is probably the fastest way to modify the texture. I do
+        // not think it is necessary at the moment
         Color32[] pixels = PerlinNoise.Perlin2DColors(noiseSettings);
 
-        UnityEngine.Debug.Log("Noise generation took:" + sw.ElapsedMilliseconds + " milliseconds ");
+        string prefix = !isPreview ? "Noise texture created in Assets folder." : "Noise texture preview was created.";
+        UnityEngine.Debug.Log(prefix + " Took:" + sw.ElapsedMilliseconds + " milliseconds ");
         sw.Stop();
 
         texture.SetPixels32(pixels);
         texture.Apply();
 
-        previewTexture = texture;
-
-        if (!isPreview)
+        if (isPreview)
+            previewTexture = texture;
+        else
             AssetDatabase.CreateAsset(texture, "Assets/PerlinNoise.asset");
     }
 
