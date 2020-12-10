@@ -59,6 +59,9 @@ public class PerlinNoiseTextureGeneratorWindow : EditorWindow
         headerStyle = new GUIStyle(EditorStyles.boldLabel);
         headerStyle.fontSize = 13;
         headerStyle.alignment = TextAnchor.MiddleCenter;
+
+        // create the preview with the default settings when the window is opened
+        CreateTexture(true);
     }
 
     private void OnGUI()
