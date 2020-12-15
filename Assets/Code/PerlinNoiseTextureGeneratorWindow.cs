@@ -31,7 +31,7 @@ public class PerlinNoiseTextureGeneratorWindow : EditorWindow
     private PerlinNoiseTextureSettings noiseSettings;
     private Texture2D previewTexture;
 
-    private GUIStyle headerStyle;
+    private static GUIStyle headerStyle;
 
     #endregion
 
@@ -56,10 +56,6 @@ public class PerlinNoiseTextureGeneratorWindow : EditorWindow
             persistence = 0.5f
         };
 
-        headerStyle = new GUIStyle(EditorStyles.boldLabel);
-        headerStyle.fontSize = 13;
-        headerStyle.alignment = TextAnchor.MiddleCenter;
-
         // create the preview with the default settings when the window is opened
         CreateTexture(true);
     }
@@ -67,6 +63,9 @@ public class PerlinNoiseTextureGeneratorWindow : EditorWindow
     private void OnGUI()
     {
         EditorGUILayout.Space();
+
+        if (headerStyle == null)
+            CreateStyle();
 
         EditorGUILayout.LabelField("Noise settings", headerStyle);
 
@@ -135,6 +134,13 @@ public class PerlinNoiseTextureGeneratorWindow : EditorWindow
     #endregion
 
     #region Methods
+
+    private void CreateStyle()
+    {
+        headerStyle = new GUIStyle(EditorStyles.boldLabel);
+        headerStyle.fontSize = 13;
+        headerStyle.alignment = TextAnchor.MiddleCenter;
+    }
 
     private void DestroyPreviewTexture()
     {
