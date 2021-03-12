@@ -7,5 +7,6 @@ To show the window go to Window -> Tools -> Perlin noise texture generator
 ![alt-text](./GithubImgs/Preview.png)
 
 # Job profiling. 
-No safety checks / leak detection. 4096x4096 texture.
+- No safety checks / leak detection.
+- 4096x4096 texture.
 ![alt-text](./GithubImgs/Profiler.png)
