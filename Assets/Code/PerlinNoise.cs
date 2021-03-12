@@ -9,39 +9,26 @@ public static class PerlinNoise
     #region Job Definitions
 
     [BurstCompile]
-    private struct Perlin2DColorsJob : IJobParallelFor
+    private struct Perlin2DFillTexelsJob : IJobFor
     {
-        [ReadOnly] public PerlinNoiseTextureSettings noiseSettings;
-        [WriteOnly] public NativeArray<Color32> pixels;
+        [WriteOnly] public NativeArray<Color32> texels;
+
+        [ReadOnly] public int2 resolution;
+        [ReadOnly] public float2 offset;
+        [ReadOnly] public float2 frequency;
 
         public void Execute(int index)
         {
-            int width = noiseSettings.resolution.x;
-            int height = noiseSettings.resolution.y;
+            int2 rowCol = new int2(index / resolution.x, index % resolution.x);
 
-            int row = index / width;
-            int col = index % width;
+            float2 xy = (float2)rowCol / (float2)resolution;
+            xy = xy * frequency + offset * frequency;
 
-            float x = (float)col / (float)width;
-            float y = (float)row / (float)height;
-
-            x *= noiseSettings.frequency;
-            y *= noiseSettings.frequency;
-
-            // for complete correctness must be multiplied by frequency
-            x += (noiseSettings.offset.x * noiseSettings.frequency);
-            y += (noiseSettings.offset.y * noiseSettings.frequency);
-
-            float perlinFloat = Perlin2D(x, y);
+            float fPerlin = Perlin2D(xy.x, xy.y);
 
             // perlin noise by Unity says it may return values slightly below 0 or beyond 1
-            byte perlinByte = (byte)(math.clamp(perlinFloat, 0.0f, 1.0f) * 255.0f);
-            pixels[index] = new Color32(perlinByte, perlinByte, perlinByte, 255);
-        }
-
-        public void Dispose()
-        {
-            pixels.Dispose();
+            byte bPerlin = (byte)(math.clamp(fPerlin, 0.0f, 1.0f) * 255.0f);
+            texels[index] = new Color32(bPerlin, bPerlin, bPerlin, 255);
         }
     }
 
@@ -51,6 +38,7 @@ public static class PerlinNoise
 
     public static float Perlin2D(float x, float y)
     {
+        // TODO: Implement perlin noise with Unity's math library. I believe perlin will take advantage from SIMD.
         return Mathf.PerlinNoise(x, y);
     }
 
@@ -61,22 +49,24 @@ public static class PerlinNoise
 
     public static Color32[] Perlin2DColors(PerlinNoiseTextureSettings noiseSettings)
     {
-        int numPixels = noiseSettings.GetNumPixels();
+        int numTexels = noiseSettings.GetNumTexels();
+        NativeArray<Color32> texels = new NativeArray<Color32>(numTexels, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
-        Perlin2DColorsJob fillPixelsJob = new Perlin2DColorsJob()
+        new Perlin2DFillTexelsJob()
         {
-            noiseSettings = noiseSettings,
-            pixels = new NativeArray<Color32>(numPixels, Allocator.TempJob, NativeArrayOptions.UninitializedMemory)
-        };
+            texels = texels,
+            resolution = new int2(noiseSettings.resolution.x, noiseSettings.resolution.y),
+            offset = (float2)noiseSettings.offset,
+            frequency = new float2(noiseSettings.frequency, noiseSettings.frequency),
+        }
+        .ScheduleParallel(numTexels, 16, default(JobHandle))
+        .Complete();
 
-        JobHandle fillPixelsHandle = fillPixelsJob.Schedule(numPixels, 16);
-        fillPixelsHandle.Complete();
+        Color32[] texelsArray = texels.ToArray();
 
-        Color32[] pixelsArray = fillPixelsJob.pixels.ToArray();
+        texels.Dispose();
 
-        fillPixelsJob.Dispose();
-
-        return pixelsArray;
+        return texelsArray;
     }
 
     #endregion

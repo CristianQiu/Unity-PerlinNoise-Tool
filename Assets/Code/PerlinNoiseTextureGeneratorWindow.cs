@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using UnityEditor;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 public struct PerlinNoiseTextureSettings
 {
@@ -9,11 +10,7 @@ public struct PerlinNoiseTextureSettings
     public Vector2 offset;
     public float frequency;
 
-    public int octaves;
-    public float lacunarity; // < the rate at which frequency changes each octave
-    public float persistence; // < the rate at which amplitude changes each octave
-
-    public int GetNumPixels()
+    public int GetNumTexels()
     {
         return resolution.x * resolution.y;
     }
@@ -31,7 +28,7 @@ public class PerlinNoiseTextureGeneratorWindow : EditorWindow
     private PerlinNoiseTextureSettings noiseSettings;
     private Texture2D previewTexture;
 
-    private static GUIStyle headerStyle;
+    private GUIStyle headerStyle;
 
     #endregion
 
@@ -51,9 +48,6 @@ public class PerlinNoiseTextureGeneratorWindow : EditorWindow
             resolution = new Vector2Int(256, 256),
             offset = new Vector2(0.0f, 0.0f),
             frequency = 5.0f,
-            octaves = 1,
-            lacunarity = 2.0f,
-            persistence = 0.5f
         };
 
         // create the preview with the default settings when the window is opened
@@ -62,10 +56,10 @@ public class PerlinNoiseTextureGeneratorWindow : EditorWindow
 
     private void OnGUI()
     {
-        EditorGUILayout.Space();
-
         if (headerStyle == null)
             CreateStyle();
+
+        EditorGUILayout.Space();
 
         EditorGUILayout.LabelField("Noise settings", headerStyle);
 
@@ -160,12 +154,12 @@ public class PerlinNoiseTextureGeneratorWindow : EditorWindow
         Stopwatch sw = new Stopwatch();
         sw.Start();
 
-        // Note: texture.GetRawTextureData is probably the fastest way to modify the texture. I do
-        // not think it is necessary at the moment
+        // TODO: texture.GetRawTextureData should be even faster
         Color32[] pixels = PerlinNoise.Perlin2DColors(noiseSettings);
 
         string prefix = !isPreview ? "Noise texture created in Assets folder." : "Noise texture preview was created.";
-        UnityEngine.Debug.Log(prefix + " Took:" + sw.ElapsedMilliseconds + " milliseconds ");
+        Debug.Log(prefix + " Took:" + sw.ElapsedMilliseconds + " milliseconds ");
+
         sw.Stop();
 
         texture.SetPixels32(pixels);
