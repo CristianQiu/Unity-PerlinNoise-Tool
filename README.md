@@ -5,3 +5,5 @@ To show the window go to Window -> Tools -> Perlin noise texture generator
 
 # Preview
 ![alt-text](./GithubImgs/Preview.png)
+
+![alt-text](./GithubImgs/Profiler.png)
