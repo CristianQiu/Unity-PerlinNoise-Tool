@@ -13,9 +13,9 @@ public static class PerlinNoise
     {
         [WriteOnly] public NativeArray<Color32> texels;
 
-        [ReadOnly] public int2 resolution;
-        [ReadOnly] public float2 offset;
-        [ReadOnly] public float2 frequency;
+        public int2 resolution;
+        public float2 offset;
+        public float2 frequency;
 
         public void Execute(int index)
         {
@@ -42,11 +42,6 @@ public static class PerlinNoise
         return Mathf.PerlinNoise(x, y);
     }
 
-    public static float Perlin2D(Vector2 xy)
-    {
-        return Perlin2D(xy.x, xy.y);
-    }
-
     public static Color32[] Perlin2DColors(PerlinNoiseTextureSettings noiseSettings)
     {
         int numTexels = noiseSettings.GetNumTexels();
@@ -63,7 +58,6 @@ public static class PerlinNoise
         .Complete();
 
         Color32[] texelsArray = texels.ToArray();
-
         texels.Dispose();
 
         return texelsArray;

@@ -50,7 +50,6 @@ public class PerlinNoiseTextureGeneratorWindow : EditorWindow
             frequency = 5.0f,
         };
 
-        // create the preview with the default settings when the window is opened
         CreateTexture(true);
     }
 
