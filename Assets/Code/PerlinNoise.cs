@@ -59,7 +59,7 @@ public static class PerlinNoise
             offset = (float2)noiseSettings.offset,
             frequency = new float2(noiseSettings.frequency, noiseSettings.frequency),
         }
-        .ScheduleParallel(numTexels, 16, default(JobHandle))
+        .ScheduleParallel(numTexels, 64, default(JobHandle))
         .Complete();
 
         Color32[] texelsArray = texels.ToArray();
