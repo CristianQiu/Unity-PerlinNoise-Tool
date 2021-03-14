@@ -8,7 +8,7 @@ public static class PerlinNoise
 {
     #region Job Definitions
 
-    [BurstCompile]
+    [BurstCompile(FloatPrecision = FloatPrecision.Standard, FloatMode = FloatMode.Fast, CompileSynchronously = true)]
     private struct Perlin2DFillTexelsJob : IJobFor
     {
         [WriteOnly] public NativeArray<Color32> texels;
