@@ -24,10 +24,9 @@ public static class PerlinNoise
             float2 xy = (float2)rowCol / (float2)resolution;
             xy = xy * frequency + offset * frequency;
 
-            float fPerlin = Perlin2D(xy.x, xy.y);
+            float fPerlin = (noise.cnoise(xy) + 1.0f) * 0.5f;
 
-            // perlin noise by Unity says it may return values slightly below 0 or beyond 1
-            byte bPerlin = (byte)(math.clamp(fPerlin, 0.0f, 1.0f) * 255.0f);
+            byte bPerlin = (byte)math.round(fPerlin * 255.0f);
             texels[index] = new Color32(bPerlin, bPerlin, bPerlin, 255);
         }
     }
@@ -35,12 +34,6 @@ public static class PerlinNoise
     #endregion
 
     #region 2D Methods
-
-    public static float Perlin2D(float x, float y)
-    {
-        // TODO: Implement perlin noise with Unity's math library. I believe perlin will take advantage from SIMD.
-        return Mathf.PerlinNoise(x, y);
-    }
 
     public static Color32[] Perlin2DColors(PerlinNoiseTextureSettings noiseSettings)
     {
