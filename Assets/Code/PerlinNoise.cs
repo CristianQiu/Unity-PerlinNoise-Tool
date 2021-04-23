@@ -9,11 +9,11 @@ public static class PerlinNoise
     #region Job Definitions
 
     [BurstCompile(FloatPrecision = FloatPrecision.Standard, FloatMode = FloatMode.Fast, CompileSynchronously = true)]
-    private struct Perlin2DFillTexelsJob : IJobFor
+    private struct FillTexelsPerlin2D : IJobFor
     {
-        [WriteOnly] public NativeArray<Color32> texels;
-
+        [WriteOnly] public NativeArray<byte> texels;
         public int2 resolution;
+
         public float2 offset;
         public float2 frequency;
 
@@ -25,9 +25,9 @@ public static class PerlinNoise
             xy = xy * frequency + offset * frequency;
 
             float fPerlin = (noise.cnoise(xy) + 1.0f) * 0.5f;
-
             byte bPerlin = (byte)math.round(fPerlin * 255.0f);
-            texels[index] = new Color32(bPerlin, bPerlin, bPerlin, 255);
+
+            texels[index] = bPerlin;
         }
     }
 
@@ -35,25 +35,21 @@ public static class PerlinNoise
 
     #region 2D Methods
 
-    public static Color32[] Perlin2DColors(PerlinNoiseTextureSettings noiseSettings)
+    public static void FillTextureWithPerlin2D(Texture2D tex, PerlinNoiseTextureSettings noiseSettings)
     {
-        int numTexels = noiseSettings.GetNumTexels();
-        NativeArray<Color32> texels = new NativeArray<Color32>(numTexels, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+        NativeArray<byte> texels = tex.GetRawTextureData<byte>();
 
-        new Perlin2DFillTexelsJob()
+        new FillTexelsPerlin2D()
         {
             texels = texels,
             resolution = new int2(noiseSettings.resolution.x, noiseSettings.resolution.y),
             offset = (float2)noiseSettings.offset,
             frequency = new float2(noiseSettings.frequency, noiseSettings.frequency),
         }
-        .ScheduleParallel(numTexels, 64, default(JobHandle))
+        .ScheduleParallel(texels.Length, 64, default(JobHandle))
         .Complete();
 
-        Color32[] texelsArray = texels.ToArray();
-        texels.Dispose();
-
-        return texelsArray;
+        tex.Apply();
     }
 
     #endregion

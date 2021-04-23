@@ -146,24 +146,22 @@ public class PerlinNoiseTextureGeneratorWindow : EditorWindow
         if (isPreview)
             DestroyPreviewTexture();
 
-        // Note: this could be a one-channel texture atm
-        Texture2D texture = new Texture2D(noiseSettings.resolution.x, noiseSettings.resolution.y, TextureFormat.RGB24, false);
+        Texture2D texture = new Texture2D(noiseSettings.resolution.x, noiseSettings.resolution.y, TextureFormat.Alpha8, false);
         texture.wrapMode = TextureWrapMode.Clamp;
 
         Stopwatch sw = new Stopwatch();
         sw.Start();
 
-        // TODO: texture.GetRawTextureData should be even faster
-        Color32[] pixels = PerlinNoise.Perlin2DColors(noiseSettings);
-
-        string prefix = !isPreview ? "Noise texture created in Assets folder." : "Noise texture preview was created.";
-        Debug.Log(prefix + " Took:" + sw.ElapsedMilliseconds + " milliseconds ");
+        PerlinNoise.FillTextureWithPerlin2D(texture, noiseSettings);
 
         sw.Stop();
 
-        texture.SetPixels32(pixels);
-        texture.Apply();
+        string prefix = !isPreview ? "Noise texture created in Assets folder." : "Noise texture preview was created.";
+        Debug.LogFormat("{0} Texture generation took: {1} milliseconds", prefix, sw.ElapsedMilliseconds);
 
+        // FIXME: there's a glitch where the project view asset is not refreshed until changing
+        // folder and going back, not sure if there's something I should call in the asset database
+        // or is just a bug
         if (isPreview)
             previewTexture = texture;
         else
