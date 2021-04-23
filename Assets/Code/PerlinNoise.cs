@@ -6,6 +6,12 @@ using UnityEngine;
 
 public static class PerlinNoise
 {
+    #region Private Attributes
+
+    private const float FrequencyEaseOfUseFactor = 100.0f;
+
+    #endregion
+
     #region Job Definitions
 
     [BurstCompile(FloatPrecision = FloatPrecision.Standard, FloatMode = FloatMode.Fast, CompileSynchronously = true)]
@@ -15,19 +21,35 @@ public static class PerlinNoise
         public int2 resolution;
 
         public float2 offset;
-        public float2 frequency;
+        public float frequency;
+        public int octaves;
+        public float persistence;
+        public float lacunarity;
 
         public void Execute(int index)
         {
             int2 rowCol = new int2(index / resolution.x, index % resolution.x);
+            float2 xy = (float2)rowCol;
 
-            float2 xy = (float2)rowCol / (float2)resolution;
-            xy = xy * frequency + offset * frequency;
+            float noiseAccum = 0.0f;
+            float maxAmp = 0.0f;
+            float amp = 1.0f;
+            float freq = frequency;
 
-            float fPerlin = (noise.cnoise(xy) + 1.0f) * 0.5f;
-            byte bPerlin = (byte)math.round(fPerlin * 255.0f);
+            for (int i = 0; i < octaves; ++i)
+            {
+                float2 coords = xy * freq + offset * freq * FrequencyEaseOfUseFactor;
+                noiseAccum += (noise.cnoise(coords) + 1.0f) * 0.5f * amp;
 
-            texels[index] = bPerlin;
+                maxAmp += amp;
+                amp *= persistence;
+                freq *= lacunarity;
+            }
+
+            float fnoise = noiseAccum / maxAmp;
+            byte bnoise = (byte)math.round(fnoise * 255.0f);
+
+            texels[index] = bnoise;
         }
     }
 
@@ -43,8 +65,11 @@ public static class PerlinNoise
         {
             texels = texels,
             resolution = new int2(noiseSettings.resolution.x, noiseSettings.resolution.y),
-            offset = (float2)noiseSettings.offset,
-            frequency = new float2(noiseSettings.frequency, noiseSettings.frequency),
+            offset = new float2(noiseSettings.offset.y, noiseSettings.offset.x),
+            frequency = noiseSettings.frequency / FrequencyEaseOfUseFactor,
+            octaves = noiseSettings.octaves,
+            persistence = noiseSettings.persistence,
+            lacunarity = noiseSettings.lacunarity,
         }
         .ScheduleParallel(texels.Length, 64, default(JobHandle))
         .Complete();

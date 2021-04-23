@@ -9,6 +9,9 @@ public struct PerlinNoiseTextureSettings
 
     public Vector2 offset;
     public float frequency;
+    public int octaves;
+    public float persistence;
+    public float lacunarity;
 
     public int GetNumTexels()
     {
@@ -47,7 +50,10 @@ public class PerlinNoiseTextureGeneratorWindow : EditorWindow
         {
             resolution = new Vector2Int(256, 256),
             offset = new Vector2(0.0f, 0.0f),
-            frequency = 5.0f,
+            frequency = 1.0f,
+            octaves = 6,
+            persistence = 0.5f,
+            lacunarity = 2.0f,
         };
 
         CreateTexture(true);
@@ -76,6 +82,12 @@ public class PerlinNoiseTextureGeneratorWindow : EditorWindow
         noiseSettings.offset = EditorGUILayout.Vector2Field("", noiseSettings.offset);
 
         GUILayout.EndHorizontal();
+
+        noiseSettings.octaves = EditorGUILayout.IntField("Octaves", noiseSettings.octaves);
+        noiseSettings.octaves = Mathf.Clamp(noiseSettings.octaves, 1, 16);
+        noiseSettings.persistence = EditorGUILayout.FloatField("Persistence", noiseSettings.persistence);
+        noiseSettings.persistence = Mathf.Clamp(noiseSettings.persistence, 0.0f, noiseSettings.persistence);
+        noiseSettings.lacunarity = EditorGUILayout.FloatField("Lacunarity", noiseSettings.lacunarity);
 
         EditorGUILayout.EndVertical();
 
@@ -156,16 +168,22 @@ public class PerlinNoiseTextureGeneratorWindow : EditorWindow
 
         sw.Stop();
 
-        string prefix = !isPreview ? "Noise texture created in Assets folder." : "Noise texture preview was created.";
-        Debug.LogFormat("{0} Texture generation took: {1} milliseconds", prefix, sw.ElapsedMilliseconds);
+        if (!isPreview)
+        {
+            string prefix = "Noise texture created in Assets folder.";
+            Debug.LogFormat("{0} Texture filling took: {1} milliseconds", prefix, sw.ElapsedMilliseconds);
+        }
 
-        // FIXME: there's a glitch where the project view asset is not refreshed until changing
-        // folder and going back, not sure if there's something I should call in the asset database
-        // or is just a bug
         if (isPreview)
             previewTexture = texture;
         else
+        {
+            bool removed = AssetDatabase.DeleteAsset("Assets/PerlinNoise.asset");
+            if (removed)
+                Debug.Log("Asset deleted at: Assets/PerlinNoise.asset. A new asset has been created. Rename or move it if you wish to keep several perlin noise texture assets.");
+
             AssetDatabase.CreateAsset(texture, "Assets/PerlinNoise.asset");
+        }
     }
 
     #endregion
